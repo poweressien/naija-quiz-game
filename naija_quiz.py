@@ -18,6 +18,7 @@ class NaijaQuiz:
         self.time_left = 10
         self.timer_id = None
         self.high_scores = self.load_high_scores()
+        self.selected_categories = ["All"]
         
         self.show_main_menu()
         
@@ -63,59 +64,95 @@ class NaijaQuiz:
         btn_frame = tk.Frame(self.root, bg="#008751")
         btn_frame.pack(pady=40)
         
-        ttk.Button(btn_frame, text="🚀 START QUIZ", command=self.start_quiz).pack(pady=12, ipadx=40, ipady=12)
+        ttk.Button(btn_frame, text="🚀 START QUIZ", command=self.show_category_selection).pack(pady=12, ipadx=40, ipady=12)
         ttk.Button(btn_frame, text="🏆 HIGH SCORES", command=self.show_high_scores).pack(pady=12, ipadx=40, ipady=12)
         ttk.Button(btn_frame, text="Exit", command=self.root.quit).pack(pady=30)
     
-    def start_quiz(self):
+    def show_category_selection(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+            
+        tk.Label(self.root, text="Choose Category", 
+                font=("Arial", 24, "bold"), fg="white", bg="#008751").pack(pady=30)
+        
+        tk.Label(self.root, text="Select one category to play", 
+                font=("Arial", 14), fg="#FFD700", bg="#008751").pack(pady=10)
+        
+        categories = [
+            "All Categories",
+            "Music & Afrobeats",
+            "Food & Culture",
+            "Politics & History",
+            "Geography",
+            "Nollywood & Entertainment",
+            "General Knowledge"
+        ]
+        
+        cat_frame = tk.Frame(self.root, bg="#008751")
+        cat_frame.pack(pady=20)
+        
+        self.cat_var = tk.StringVar(value="All Categories")
+        
+        for cat in categories:
+            rb = tk.Radiobutton(cat_frame, text=cat, variable=self.cat_var, value=cat,
+                              font=("Arial", 13), bg="#008751", fg="white", selectcolor="#FF9500")
+            rb.pack(pady=8, anchor="w", padx=100)
+        
+        btn_frame = tk.Frame(self.root, bg="#008751")
+        btn_frame.pack(pady=40)
+        
+        ttk.Button(btn_frame, text="Start Quiz", command=self.start_filtered_quiz).pack(ipadx=30, ipady=10)
+        ttk.Button(btn_frame, text="Back to Menu", command=self.show_main_menu).pack(ipadx=20, ipady=8, pady=10)
+    
+    def start_filtered_quiz(self):
+        self.selected_categories = [self.cat_var.get()]
         self.score = 0
         self.current_question = 0
         self.time_left = 10
-        self.load_naija_questions()
-        self.show_question()
+        self.load_filtered_questions()
+        if not self.questions:
+            messagebox.showwarning("No Questions", "No questions available for this category yet.")
+            self.show_main_menu()
+        else:
+            self.show_question()
     
-    def load_naija_questions(self):
-        self.questions = [
-            # Nigerian Politics & Current
-            {"q": "Who is the current President of Nigeria?", "a": "Bola Ahmed Tinubu", "options": ["Bola Ahmed Tinubu", "Atiku Abubakar", "Peter Obi", "Muhammadu Buhari"]},
-            {"q": "What is the capital city of Nigeria?", "a": "Abuja", "options": ["Lagos", "Abuja", "Kano", "Ibadan"]},
-            {"q": "Which state is known as the Centre of Excellence?", "a": "Lagos", "options": ["Lagos", "Abuja", "Rivers", "Kano"]},
-            
+    def load_filtered_questions(self):
+        all_questions = [
             # Music & Afrobeats
-            {"q": "Who sang 'Essence'?", "a": "Wizkid", "options": ["Davido", "Burna Boy", "Wizkid", "Rema"]},
-            {"q": "Who is popularly called 'Odogwu'?", "a": "Burna Boy", "options": ["Davido", "Burna Boy", "Wizkid", "Olamide"]},
-            {"q": "Who sang the song 'Fall'?", "a": "Wizkid", "options": ["Wizkid", "Davido", "Rema", "Tems"]},
-            {"q": "Which artist is known for 'Ojuelegba'?", "a": "Wizkid", "options": ["Wizkid", "Davido", "Phyno", "Flavour"]},
+            {"q": "Who sang 'Essence'?", "a": "Wizkid", "options": ["Davido", "Burna Boy", "Wizkid", "Rema"], "cat": "Music & Afrobeats"},
+            {"q": "Who is popularly called 'Odogwu'?", "a": "Burna Boy", "options": ["Davido", "Burna Boy", "Wizkid", "Olamide"], "cat": "Music & Afrobeats"},
+            {"q": "Who sang the song 'Fall'?", "a": "Wizkid", "options": ["Wizkid", "Davido", "Rema", "Tems"], "cat": "Music & Afrobeats"},
             
             # Food & Culture
-            {"q": "What is Nigeria's most famous rice dish?", "a": "Jollof Rice", "options": ["Jollof Rice", "Fried Rice", "Coconut Rice", "Ofada Rice"]},
-            {"q": "Which soup is made with melon seeds?", "a": "Egusi", "options": ["Egusi", "Ogbono", "Okro", "Efo Riro"]},
-            {"q": "What does 'How Far?' mean in Pidgin English?", "a": "How are you?", "options": ["How are you?", "Where are you going?", "What is happening?", "Goodbye"]},
+            {"q": "What is Nigeria's most famous rice dish?", "a": "Jollof Rice", "options": ["Jollof Rice", "Fried Rice", "Coconut Rice", "Ofada Rice"], "cat": "Food & Culture"},
+            {"q": "Which soup is made with melon seeds?", "a": "Egusi", "options": ["Egusi", "Ogbono", "Okro", "Efo Riro"], "cat": "Food & Culture"},
+            {"q": "What does 'How Far?' mean in Pidgin English?", "a": "How are you?", "options": ["How are you?", "Where are you going?", "What is happening?", "Goodbye"], "cat": "Food & Culture"},
             
-            # Geography & States
-            {"q": "Which city is called the Garden City?", "a": "Port Harcourt", "options": ["Port Harcourt", "Enugu", "Ibadan", "Jos"]},
-            {"q": "Which state is known as the Coal City?", "a": "Enugu", "options": ["Enugu", "Ebonyi", "Imo", "Anambra"]},
-            {"q": "Which state is famous for Suya?", "a": "Kano", "options": ["Kano", "Lagos", "Oyo", "Kaduna"]},
+            # Politics & History
+            {"q": "Who is the current President of Nigeria?", "a": "Bola Ahmed Tinubu", "options": ["Bola Ahmed Tinubu", "Atiku Abubakar", "Peter Obi", "Muhammadu Buhari"], "cat": "Politics & History"},
+            {"q": "Who was the first President of Nigeria?", "a": "Nnamdi Azikiwe", "options": ["Nnamdi Azikiwe", "Abubakar Tafawa Balewa", "Obafemi Awolowo", "Yakubu Gowon"], "cat": "Politics & History"},
+            {"q": "How many states are in Nigeria?", "a": "36", "options": ["30", "36", "42", "25"], "cat": "Politics & History"},
+            
+            # Geography
+            {"q": "What is the capital city of Nigeria?", "a": "Abuja", "options": ["Lagos", "Abuja", "Kano", "Ibadan"], "cat": "Geography"},
+            {"q": "Which state is known as the Centre of Excellence?", "a": "Lagos", "options": ["Lagos", "Abuja", "Rivers", "Kano"], "cat": "Geography"},
+            {"q": "Which city is called the Garden City?", "a": "Port Harcourt", "options": ["Port Harcourt", "Enugu", "Ibadan", "Jos"], "cat": "Geography"},
             
             # Nollywood & Entertainment
-            {"q": "Who won BBNaija Season 7 (Level Up)?", "a": "Phyna", "options": ["Phyna", "Bella", "Sheggz", "Chioma"]},
-            {"q": "Which is the biggest movie industry in Africa?", "a": "Nollywood", "options": ["Hollywood", "Bollywood", "Nollywood", "Kannywood"]},
+            {"q": "Who won BBNaija Season 7 (Level Up)?", "a": "Phyna", "options": ["Phyna", "Bella", "Sheggz", "Chioma"], "cat": "Nollywood & Entertainment"},
+            {"q": "Which is the biggest movie industry in Africa?", "a": "Nollywood", "options": ["Hollywood", "Bollywood", "Nollywood", "Kannywood"], "cat": "Nollywood & Entertainment"},
             
-            # General Knowledge (with Naija touch)
-            {"q": "What is the longest river in Nigeria?", "a": "River Niger", "options": ["River Niger", "River Benue", "River Ogun", "River Kaduna"]},
-            {"q": "What is the green and white flag of Nigeria called?", "a": "National Flag", "options": ["National Flag", "Independence Flag", "Unity Flag", "Freedom Flag"]},
-            {"q": "What is the currency of Nigeria?", "a": "Naira", "options": ["Naira", "Cedi", "Rand", "Dollar"]},
-            {"q": "How many states are in Nigeria?", "a": "36", "options": ["30", "36", "42", "25"]},
-            {"q": "What is the national animal of Nigeria?", "a": "Eagle", "options": ["Lion", "Eagle", "Horse", "Camel"]},
-            {"q": "Who was the first President of Nigeria?", "a": "Nnamdi Azikiwe", "options": ["Nnamdi Azikiwe", "Abubakar Tafawa Balewa", "Obafemi Awolowo", "Yakubu Gowon"]},
-            {"q": "What does 'ASUU' stand for?", "a": "Academic Staff Union of Universities", "options": ["Academic Staff Union of Universities", "Association of Students in Universities", "Advanced Science Union", "Academic Staff Unity Union"]},
-            
-            # More Mixed Questions
-            {"q": "Which Nigerian city has the largest population?", "a": "Lagos", "options": ["Lagos", "Kano", "Abuja", "Ibadan"]},
-            {"q": "What is the meaning of 'Naija'?", "a": "Nigeria", "options": ["Nigeria", "Friend", "Food", "Music"]},
-            {"q": "Who is the current Vice President of Nigeria?", "a": "Kashim Shettima", "options": ["Yemi Osinbajo", "Kashim Shettima", "Atiku Abubakar", "Bola Tinubu"]},
-            {"q": "What is pounded yam called in Yoruba?", "a": "Iyan", "options": ["Iyan", "Fufu", "Tuwo", "Amala"]},
+            # General Knowledge
+            {"q": "What is the currency of Nigeria?", "a": "Naira", "options": ["Naira", "Cedi", "Rand", "Dollar"], "cat": "General Knowledge"},
+            {"q": "What is the longest river in Nigeria?", "a": "River Niger", "options": ["River Niger", "River Benue", "River Ogun", "River Kaduna"], "cat": "General Knowledge"},
+            {"q": "What is the national animal of Nigeria?", "a": "Eagle", "options": ["Lion", "Eagle", "Horse", "Camel"], "cat": "General Knowledge"},
         ]
+        
+        if "All Categories" in self.selected_categories:
+            self.questions = all_questions
+        else:
+            self.questions = [q for q in all_questions if q["cat"] in self.selected_categories]
+        
         random.shuffle(self.questions)
     
     def show_question(self):
