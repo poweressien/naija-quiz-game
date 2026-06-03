@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 import random
 import json
 from datetime import datetime
-import winsound  # For sound effects on Windows
+import winsound
 
 class NaijaQuiz:
     def __init__(self):
@@ -15,7 +15,8 @@ class NaijaQuiz:
         
         self.score = 0
         self.current_question = 0
-        self.time_left = 10   # Changed to 10 seconds
+        self.time_left = 10
+        self.timer_id = None  # Important: Track timer ID
         self.high_scores = self.load_high_scores()
         
         self.show_main_menu()
@@ -36,14 +37,20 @@ class NaijaQuiz:
     def play_sound(self, sound_type):
         try:
             if sound_type == "correct":
-                winsound.Beep(1000, 200)  # High beep
-                winsound.Beep(1200, 150)
+                winsound.Beep(1000, 200)
+                winsound.Beep(1300, 150)
             elif sound_type == "wrong":
-                winsound.Beep(400, 300)   # Low beep
+                winsound.Beep(400, 300)
         except:
-            pass  # In case sound fails
+            pass
+    
+    def cancel_timer(self):
+        if self.timer_id:
+            self.root.after_cancel(self.timer_id)
+            self.timer_id = None
     
     def show_main_menu(self):
+        self.cancel_timer()
         for widget in self.root.winfo_children():
             widget.destroy()
             
@@ -63,6 +70,7 @@ class NaijaQuiz:
     def start_quiz(self):
         self.score = 0
         self.current_question = 0
+        self.time_left = 10
         self.load_naija_questions()
         self.show_question()
     
@@ -75,17 +83,16 @@ class NaijaQuiz:
             {"q": "What is Nigeria's national anthem first line?", "a": "Arise, O compatriots", "options": ["Arise, O compatriots", "Nigeria we hail thee", "God bless our land", "One Nigeria"]},
             {"q": "Which city is called the Garden City?", "a": "Port Harcourt", "options": ["Port Harcourt", "Ibadan", "Enugu", "Jos"]},
             {"q": "What is the most popular Nigerian soup?", "a": "Egusi", "options": ["Egusi", "Ogbono", "Okro", "Efo Riro"]},
-            {"q": "Who won BBNaija Season 7 (Level Up)?", "a": "Phyna", "options": ["Phyna", "Bella", "Sheggz", "Chioma"]},
+            {"q": "Who won BBNaija Season 7?", "a": "Phyna", "options": ["Phyna", "Bella", "Sheggz", "Chioma"]},
             {"q": "Which Nigerian musician is called 'Odogwu'?", "a": "Burna Boy", "options": ["Davido", "Burna Boy", "Wizkid", "Flavour"]},
             {"q": "What is the capital of Nigeria?", "a": "Abuja", "options": ["Lagos", "Abuja", "Kano", "Ibadan"]},
-            {"q": "Who is the king of Afrobeats?", "a": "Wizkid", "options": ["Davido", "Wizkid", "Burna Boy", "Olamide"]},
-            {"q": "What does 'Jollof' refer to?", "a": "Rice dish", "options": ["Rice dish", "Beans", "Yam", "Plantain"]},
-            {"q": "Which state is famous for Suya?", "a": "Kano", "options": ["Kano", "Lagos", "Benue", "Oyo"]},
             {"q": "Who sang 'Fall'?", "a": "Wizkid", "options": ["Wizkid", "Davido", "Rema", "Tems"]},
+            {"q": "Which state is famous for Suya?", "a": "Kano", "options": ["Kano", "Lagos", "Benue", "Oyo"]},
         ]
         random.shuffle(self.questions)
     
     def show_question(self):
+        self.cancel_timer()   # Cancel any running timer
         for widget in self.root.winfo_children():
             widget.destroy()
             
@@ -115,11 +122,12 @@ class NaijaQuiz:
         if self.time_left > 0:
             self.time_left -= 1
             self.timer_label.config(text=f"⏳ {self.time_left}s")
-            self.root.after(1000, self.update_timer)
+            self.timer_id = self.root.after(1000, self.update_timer)
         else:
             self.time_up()
     
     def check_answer(self, selected, correct):
+        self.cancel_timer()
         if selected == correct:
             self.score += 25
             self.play_sound("correct")
@@ -127,10 +135,10 @@ class NaijaQuiz:
         else:
             self.play_sound("wrong")
             messagebox.showerror("❌ Wrong Answer", f"Correct answer na:\n{correct}")
-        
         self.next_question()
     
     def time_up(self):
+        self.cancel_timer()
         self.play_sound("wrong")
         messagebox.showwarning("⏰ Time Up!", "You no finish on time!")
         self.next_question()
@@ -144,6 +152,7 @@ class NaijaQuiz:
             self.show_final_score()
     
     def show_final_score(self):
+        self.cancel_timer()
         self.save_high_score()
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -157,14 +166,14 @@ class NaijaQuiz:
         ttk.Button(self.root, text="Play Again", command=self.show_main_menu).pack(pady=30, ipadx=40, ipady=12)
     
     def show_high_scores(self):
+        self.cancel_timer()
         if not self.high_scores:
             messagebox.showinfo("High Scores", "No high scores yet. Go play!")
             return
             
         text = "🏆 TOP HIGH SCORES 🏆\n\n"
         for i, hs in enumerate(self.high_scores[:5], 1):
-            text += f"{i}. {hs['score']} points  -  {hs['date']}\n"
-        
+            text += f"{i}. {hs['score']} points   -   {hs['date']}\n"
         messagebox.showinfo("High Scores", text)
 
     def run(self):
