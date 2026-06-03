@@ -4,6 +4,7 @@ import random
 import json
 from datetime import datetime
 import winsound
+import os
 
 class NaijaQuiz:
     def __init__(self):
@@ -18,22 +19,35 @@ class NaijaQuiz:
         self.time_left = 10
         self.timer_id = None
         self.high_scores = self.load_high_scores()
-        self.selected_categories = ["All"]
         
         self.show_main_menu()
         
     def load_high_scores(self):
         try:
-            with open("highscores.json", "r") as f:
-                return json.load(f)
+            if os.path.exists("highscores.json"):
+                with open("highscores.json", "r") as f:
+                    return json.load(f)
+            return []
         except:
             return []
     
     def save_high_score(self):
-        self.high_scores.append({"score": self.score, "date": str(datetime.now().date())})
+        today = str(datetime.now().date())
+        
+        # Remove old entry from same day if exists
+        self.high_scores = [hs for hs in self.high_scores if hs["date"] != today]
+        
+        # Add new score
+        self.high_scores.append({"score": self.score, "date": today})
+        
+        # Sort and keep top 10
         self.high_scores = sorted(self.high_scores, key=lambda x: x["score"], reverse=True)[:10]
-        with open("highscores.json", "w") as f:
-            json.dump(self.high_scores, f, indent=2)
+        
+        try:
+            with open("highscores.json", "w") as f:
+                json.dump(self.high_scores, f, indent=2)
+        except:
+            pass  # Fail silently if save fails
     
     def play_sound(self, sound_type):
         try:
@@ -75,16 +89,9 @@ class NaijaQuiz:
         tk.Label(self.root, text="Choose Category", 
                 font=("Arial", 24, "bold"), fg="white", bg="#008751").pack(pady=30)
         
-        tk.Label(self.root, text="Select one category to play", 
-                font=("Arial", 14), fg="#FFD700", bg="#008751").pack(pady=10)
-        
         categories = [
-            "All Categories",
-            "Music & Afrobeats",
-            "Food & Culture",
-            "Politics & History",
-            "Geography",
-            "Nollywood & Entertainment",
+            "All Categories", "Music & Afrobeats", "Food & Culture", 
+            "Politics & History", "Geography", "Nollywood & Entertainment", 
             "General Knowledge"
         ]
         
@@ -105,53 +112,33 @@ class NaijaQuiz:
         ttk.Button(btn_frame, text="Back to Menu", command=self.show_main_menu).pack(ipadx=20, ipady=8, pady=10)
     
     def start_filtered_quiz(self):
-        self.selected_categories = [self.cat_var.get()]
         self.score = 0
         self.current_question = 0
         self.time_left = 10
         self.load_filtered_questions()
         if not self.questions:
-            messagebox.showwarning("No Questions", "No questions available for this category yet.")
+            messagebox.showwarning("No Questions", "No questions available for this category.")
             self.show_main_menu()
         else:
             self.show_question()
     
     def load_filtered_questions(self):
         all_questions = [
-            # Music & Afrobeats
             {"q": "Who sang 'Essence'?", "a": "Wizkid", "options": ["Davido", "Burna Boy", "Wizkid", "Rema"], "cat": "Music & Afrobeats"},
             {"q": "Who is popularly called 'Odogwu'?", "a": "Burna Boy", "options": ["Davido", "Burna Boy", "Wizkid", "Olamide"], "cat": "Music & Afrobeats"},
-            {"q": "Who sang the song 'Fall'?", "a": "Wizkid", "options": ["Wizkid", "Davido", "Rema", "Tems"], "cat": "Music & Afrobeats"},
-            
-            # Food & Culture
             {"q": "What is Nigeria's most famous rice dish?", "a": "Jollof Rice", "options": ["Jollof Rice", "Fried Rice", "Coconut Rice", "Ofada Rice"], "cat": "Food & Culture"},
             {"q": "Which soup is made with melon seeds?", "a": "Egusi", "options": ["Egusi", "Ogbono", "Okro", "Efo Riro"], "cat": "Food & Culture"},
-            {"q": "What does 'How Far?' mean in Pidgin English?", "a": "How are you?", "options": ["How are you?", "Where are you going?", "What is happening?", "Goodbye"], "cat": "Food & Culture"},
-            
-            # Politics & History
             {"q": "Who is the current President of Nigeria?", "a": "Bola Ahmed Tinubu", "options": ["Bola Ahmed Tinubu", "Atiku Abubakar", "Peter Obi", "Muhammadu Buhari"], "cat": "Politics & History"},
-            {"q": "Who was the first President of Nigeria?", "a": "Nnamdi Azikiwe", "options": ["Nnamdi Azikiwe", "Abubakar Tafawa Balewa", "Obafemi Awolowo", "Yakubu Gowon"], "cat": "Politics & History"},
-            {"q": "How many states are in Nigeria?", "a": "36", "options": ["30", "36", "42", "25"], "cat": "Politics & History"},
-            
-            # Geography
             {"q": "What is the capital city of Nigeria?", "a": "Abuja", "options": ["Lagos", "Abuja", "Kano", "Ibadan"], "cat": "Geography"},
-            {"q": "Which state is known as the Centre of Excellence?", "a": "Lagos", "options": ["Lagos", "Abuja", "Rivers", "Kano"], "cat": "Geography"},
-            {"q": "Which city is called the Garden City?", "a": "Port Harcourt", "options": ["Port Harcourt", "Enugu", "Ibadan", "Jos"], "cat": "Geography"},
-            
-            # Nollywood & Entertainment
-            {"q": "Who won BBNaija Season 7 (Level Up)?", "a": "Phyna", "options": ["Phyna", "Bella", "Sheggz", "Chioma"], "cat": "Nollywood & Entertainment"},
-            {"q": "Which is the biggest movie industry in Africa?", "a": "Nollywood", "options": ["Hollywood", "Bollywood", "Nollywood", "Kannywood"], "cat": "Nollywood & Entertainment"},
-            
-            # General Knowledge
+            {"q": "Who won BBNaija Season 7?", "a": "Phyna", "options": ["Phyna", "Bella", "Sheggz", "Chioma"], "cat": "Nollywood & Entertainment"},
             {"q": "What is the currency of Nigeria?", "a": "Naira", "options": ["Naira", "Cedi", "Rand", "Dollar"], "cat": "General Knowledge"},
-            {"q": "What is the longest river in Nigeria?", "a": "River Niger", "options": ["River Niger", "River Benue", "River Ogun", "River Kaduna"], "cat": "General Knowledge"},
-            {"q": "What is the national animal of Nigeria?", "a": "Eagle", "options": ["Lion", "Eagle", "Horse", "Camel"], "cat": "General Knowledge"},
+            # Add more as needed...
         ]
         
-        if "All Categories" in self.selected_categories:
+        if self.cat_var.get() == "All Categories":
             self.questions = all_questions
         else:
-            self.questions = [q for q in all_questions if q["cat"] in self.selected_categories]
+            self.questions = [q for q in all_questions if q["cat"] == self.cat_var.get()]
         
         random.shuffle(self.questions)
     
@@ -221,24 +208,32 @@ class NaijaQuiz:
         for widget in self.root.winfo_children():
             widget.destroy()
             
+        is_new_high = self.score >= (self.high_scores[0]["score"] if self.high_scores else 0)
+        
         tk.Label(self.root, text="Quiz Don Finish!", font=("Arial", 28, "bold"), 
-                fg="#FFD700", bg="#008751").pack(pady=40)
+                fg="#FFD700", bg="#008751").pack(pady=30)
         
         tk.Label(self.root, text=f"Your Score: {self.score} Points", 
-                font=("Arial", 24), fg="white", bg="#008751").pack(pady=20)
+                font=("Arial", 24), fg="white", bg="#008751").pack(pady=10)
         
-        ttk.Button(self.root, text="Play Again", command=self.show_main_menu).pack(pady=30, ipadx=40, ipady=12)
+        if is_new_high and self.score > 0:
+            tk.Label(self.root, text="🎉 NEW HIGH SCORE! 🎉", 
+                    font=("Arial", 18, "bold"), fg="#00FF00", bg="#008751").pack(pady=10)
+        
+        ttk.Button(self.root, text="Play Again", command=self.show_main_menu).pack(pady=20, ipadx=40, ipady=12)
+        ttk.Button(self.root, text="View High Scores", command=self.show_high_scores).pack(pady=10, ipadx=30, ipady=8)
     
     def show_high_scores(self):
         self.cancel_timer()
         if not self.high_scores:
-            messagebox.showinfo("High Scores", "No high scores yet. Go play!")
+            messagebox.showinfo("High Scores", "No high scores yet. Play to set records!")
             return
             
-        text = "🏆 TOP HIGH SCORES 🏆\n\n"
-        for i, hs in enumerate(self.high_scores[:5], 1):
-            text += f"{i}. {hs['score']} points   -   {hs['date']}\n"
-        messagebox.showinfo("High Scores", text)
+        text = "🏆 TOP 10 HIGH SCORES 🏆\n\n"
+        for i, hs in enumerate(self.high_scores, 1):
+            text += f"{i:2d}. {hs['score']:3d} points   —   {hs['date']}\n"
+        
+        messagebox.showinfo("Persistent High Scores", text)
 
     def run(self):
         self.root.mainloop()
