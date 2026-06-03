@@ -9,14 +9,14 @@ class NaijaQuiz:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("🇳🇬 Naija Brain Battle 🇳🇬")
-        self.root.geometry("900x680")
+        self.root.geometry("920x700")
         self.root.resizable(False, False)
         self.root.configure(bg="#008751")
         
         self.score = 0
         self.current_question = 0
         self.time_left = 10
-        self.timer_id = None  # Important: Track timer ID
+        self.timer_id = None
         self.high_scores = self.load_high_scores()
         
         self.show_main_menu()
@@ -57,7 +57,7 @@ class NaijaQuiz:
         tk.Label(self.root, text="🇳🇬 NAIIJA BRAIN BATTLE 🇳🇬", 
                 font=("Arial", 32, "bold"), fg="white", bg="#008751").pack(pady=50)
         
-        tk.Label(self.root, text="Oya! Prove You Be Real Naija Person 🔥", 
+        tk.Label(self.root, text="How Well You Know Your Country? 🔥", 
                 font=("Arial", 16), fg="#FFD700", bg="#008751").pack(pady=10)
         
         btn_frame = tk.Frame(self.root, bg="#008751")
@@ -76,23 +76,50 @@ class NaijaQuiz:
     
     def load_naija_questions(self):
         self.questions = [
+            # Nigerian Politics & Current
             {"q": "Who is the current President of Nigeria?", "a": "Bola Ahmed Tinubu", "options": ["Bola Ahmed Tinubu", "Atiku Abubakar", "Peter Obi", "Muhammadu Buhari"]},
-            {"q": "What does 'How Far?' mean in Pidgin?", "a": "How are you?", "options": ["How are you?", "Where are you?", "What happened?", "Goodbye"]},
-            {"q": "Who sang the song 'Essence'?", "a": "Wizkid", "options": ["Davido", "Burna Boy", "Wizkid", "Rema"]},
-            {"q": "Which state is known as the Centre of Excellence?", "a": "Lagos", "options": ["Lagos", "Abuja", "Kano", "Rivers"]},
-            {"q": "What is Nigeria's national anthem first line?", "a": "Arise, O compatriots", "options": ["Arise, O compatriots", "Nigeria we hail thee", "God bless our land", "One Nigeria"]},
-            {"q": "Which city is called the Garden City?", "a": "Port Harcourt", "options": ["Port Harcourt", "Ibadan", "Enugu", "Jos"]},
-            {"q": "What is the most popular Nigerian soup?", "a": "Egusi", "options": ["Egusi", "Ogbono", "Okro", "Efo Riro"]},
-            {"q": "Who won BBNaija Season 7?", "a": "Phyna", "options": ["Phyna", "Bella", "Sheggz", "Chioma"]},
-            {"q": "Which Nigerian musician is called 'Odogwu'?", "a": "Burna Boy", "options": ["Davido", "Burna Boy", "Wizkid", "Flavour"]},
-            {"q": "What is the capital of Nigeria?", "a": "Abuja", "options": ["Lagos", "Abuja", "Kano", "Ibadan"]},
-            {"q": "Who sang 'Fall'?", "a": "Wizkid", "options": ["Wizkid", "Davido", "Rema", "Tems"]},
-            {"q": "Which state is famous for Suya?", "a": "Kano", "options": ["Kano", "Lagos", "Benue", "Oyo"]},
+            {"q": "What is the capital city of Nigeria?", "a": "Abuja", "options": ["Lagos", "Abuja", "Kano", "Ibadan"]},
+            {"q": "Which state is known as the Centre of Excellence?", "a": "Lagos", "options": ["Lagos", "Abuja", "Rivers", "Kano"]},
+            
+            # Music & Afrobeats
+            {"q": "Who sang 'Essence'?", "a": "Wizkid", "options": ["Davido", "Burna Boy", "Wizkid", "Rema"]},
+            {"q": "Who is popularly called 'Odogwu'?", "a": "Burna Boy", "options": ["Davido", "Burna Boy", "Wizkid", "Olamide"]},
+            {"q": "Who sang the song 'Fall'?", "a": "Wizkid", "options": ["Wizkid", "Davido", "Rema", "Tems"]},
+            {"q": "Which artist is known for 'Ojuelegba'?", "a": "Wizkid", "options": ["Wizkid", "Davido", "Phyno", "Flavour"]},
+            
+            # Food & Culture
+            {"q": "What is Nigeria's most famous rice dish?", "a": "Jollof Rice", "options": ["Jollof Rice", "Fried Rice", "Coconut Rice", "Ofada Rice"]},
+            {"q": "Which soup is made with melon seeds?", "a": "Egusi", "options": ["Egusi", "Ogbono", "Okro", "Efo Riro"]},
+            {"q": "What does 'How Far?' mean in Pidgin English?", "a": "How are you?", "options": ["How are you?", "Where are you going?", "What is happening?", "Goodbye"]},
+            
+            # Geography & States
+            {"q": "Which city is called the Garden City?", "a": "Port Harcourt", "options": ["Port Harcourt", "Enugu", "Ibadan", "Jos"]},
+            {"q": "Which state is known as the Coal City?", "a": "Enugu", "options": ["Enugu", "Ebonyi", "Imo", "Anambra"]},
+            {"q": "Which state is famous for Suya?", "a": "Kano", "options": ["Kano", "Lagos", "Oyo", "Kaduna"]},
+            
+            # Nollywood & Entertainment
+            {"q": "Who won BBNaija Season 7 (Level Up)?", "a": "Phyna", "options": ["Phyna", "Bella", "Sheggz", "Chioma"]},
+            {"q": "Which is the biggest movie industry in Africa?", "a": "Nollywood", "options": ["Hollywood", "Bollywood", "Nollywood", "Kannywood"]},
+            
+            # General Knowledge (with Naija touch)
+            {"q": "What is the longest river in Nigeria?", "a": "River Niger", "options": ["River Niger", "River Benue", "River Ogun", "River Kaduna"]},
+            {"q": "What is the green and white flag of Nigeria called?", "a": "National Flag", "options": ["National Flag", "Independence Flag", "Unity Flag", "Freedom Flag"]},
+            {"q": "What is the currency of Nigeria?", "a": "Naira", "options": ["Naira", "Cedi", "Rand", "Dollar"]},
+            {"q": "How many states are in Nigeria?", "a": "36", "options": ["30", "36", "42", "25"]},
+            {"q": "What is the national animal of Nigeria?", "a": "Eagle", "options": ["Lion", "Eagle", "Horse", "Camel"]},
+            {"q": "Who was the first President of Nigeria?", "a": "Nnamdi Azikiwe", "options": ["Nnamdi Azikiwe", "Abubakar Tafawa Balewa", "Obafemi Awolowo", "Yakubu Gowon"]},
+            {"q": "What does 'ASUU' stand for?", "a": "Academic Staff Union of Universities", "options": ["Academic Staff Union of Universities", "Association of Students in Universities", "Advanced Science Union", "Academic Staff Unity Union"]},
+            
+            # More Mixed Questions
+            {"q": "Which Nigerian city has the largest population?", "a": "Lagos", "options": ["Lagos", "Kano", "Abuja", "Ibadan"]},
+            {"q": "What is the meaning of 'Naija'?", "a": "Nigeria", "options": ["Nigeria", "Friend", "Food", "Music"]},
+            {"q": "Who is the current Vice President of Nigeria?", "a": "Kashim Shettima", "options": ["Yemi Osinbajo", "Kashim Shettima", "Atiku Abubakar", "Bola Tinubu"]},
+            {"q": "What is pounded yam called in Yoruba?", "a": "Iyan", "options": ["Iyan", "Fufu", "Tuwo", "Amala"]},
         ]
         random.shuffle(self.questions)
     
     def show_question(self):
-        self.cancel_timer()   # Cancel any running timer
+        self.cancel_timer()
         for widget in self.root.winfo_children():
             widget.destroy()
             
@@ -108,13 +135,13 @@ class NaijaQuiz:
                                   font=("Arial", 22, "bold"), fg="#FF0000", bg="#008751")
         self.timer_label.pack(pady=15)
         
-        tk.Label(self.root, text=q["q"], font=("Arial", 16), wraplength=750, 
+        tk.Label(self.root, text=q["q"], font=("Arial", 16), wraplength=780, 
                 bg="#008751", fg="white", justify="center").pack(pady=40)
         
         for option in q["options"]:
-            btn = tk.Button(self.root, text=option, font=("Arial", 13), width=60, height=2,
+            btn = tk.Button(self.root, text=option, font=("Arial", 13), width=65, height=2,
                           bg="#ffffff", fg="#000000", command=lambda o=option: self.check_answer(o, q["a"]))
-            btn.pack(pady=7)
+            btn.pack(pady=6)
         
         self.update_timer()
     
@@ -131,7 +158,7 @@ class NaijaQuiz:
         if selected == correct:
             self.score += 25
             self.play_sound("correct")
-            messagebox.showinfo("✅ CORRECT!", "You try no be small! 🔥")
+            messagebox.showinfo("✅ CORRECT!", "You try! Well done my guy 🔥")
         else:
             self.play_sound("wrong")
             messagebox.showerror("❌ Wrong Answer", f"Correct answer na:\n{correct}")
