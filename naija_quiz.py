@@ -23,7 +23,7 @@ class NaijaMillionaire:
         self.prizes = [0, 100, 200, 500, 1000, 2000, 5000, 10000, 25000, 50000, 100000]
         
         self.setup_styles()
-        self.show_main_menu()
+        self.show_main_menu(fade=0)
         
     def setup_styles(self):
         style = ttk.Style()
@@ -63,32 +63,60 @@ class NaijaMillionaire:
             self.root.after_cancel(self.timer_id)
             self.timer_id = None
     
-    def show_main_menu(self):
+    def fade_in(self, widget, alpha=0):
+        if alpha < 100:
+            try:
+                color = f"#{int(255*alpha/100):02x}{int(255*alpha/100):02x}{int(255*alpha/100):02x}"
+                widget.config(fg=color)
+            except:
+                pass
+            self.root.after(15, lambda: self.fade_in(widget, alpha + 8))
+    
+    def show_main_menu(self, fade=0):
         for widget in self.root.winfo_children():
             widget.destroy()
             
         header = tk.Label(self.root, text="WHO WANTS TO BE A", font=("Arial", 28, "bold"), fg="#FFD700", bg="#050520")
-        header.pack(pady=20)
+        header.pack(pady=30)
+        self.fade_in(header)
+        
         title = tk.Label(self.root, text="NAIJA MILLIONAIRE", font=("Arial", 48, "bold"), fg="#FF2222", bg="#050520")
         title.pack(pady=5)
+        self.fade_in(title)
         
-        ttk.Button(self.root, text="🚀 START GAME", command=self.show_category_selection, style="Accent.TButton").pack(pady=60, ipadx=70, ipady=20)
-        ttk.Button(self.root, text="🏆 HIGH SCORES", command=self.show_high_scores).pack(pady=15, ipadx=60)
+        subtitle = tk.Label(self.root, text="🇳🇬 Test Your Knowledge • Win Big", font=("Arial", 16), fg="#00FFAA", bg="#050520")
+        subtitle.pack(pady=20)
+        self.fade_in(subtitle)
+        
+        btn_frame = tk.Frame(self.root, bg="#050520")
+        btn_frame.pack(pady=60)
+        
+        start_btn = ttk.Button(btn_frame, text="🚀 START GAME", command=self.show_category_selection, style="Accent.TButton")
+        start_btn.pack(pady=15, ipadx=70, ipady=20)
+        
+        score_btn = ttk.Button(btn_frame, text="🏆 HIGH SCORES", command=self.show_high_scores)
+        score_btn.pack(pady=12, ipadx=60)
     
     def show_category_selection(self):
         for widget in self.root.winfo_children():
             widget.destroy()
             
-        tk.Label(self.root, text="SELECT CATEGORY", font=("Arial", 26, "bold"), fg="#FFD700", bg="#050520").pack(pady=50)
+        title = tk.Label(self.root, text="SELECT CATEGORY", font=("Arial", 26, "bold"), fg="#FFD700", bg="#050520")
+        title.pack(pady=50)
+        self.fade_in(title)
         
         categories = ["All Categories", "Music & Afrobeats", "Food & Culture", "Politics & History", "Geography", "General Knowledge"]
         self.cat_var = tk.StringVar(value="All Categories")
         
         for cat in categories:
-            rb = tk.Radiobutton(self.root, text=cat, variable=self.cat_var, value=cat, font=("Arial", 14), bg="#050520", fg="#FFFFFF", selectcolor="#FF9500")
+            rb = tk.Radiobutton(self.root, text=cat, variable=self.cat_var, value=cat,
+                              font=("Arial", 14), bg="#050520", fg="#FFFFFF", selectcolor="#FF9500")
             rb.pack(pady=12)
+            self.fade_in(rb)
         
-        ttk.Button(self.root, text="BEGIN GAME", command=self.start_game, style="Accent.TButton").pack(pady=60, ipadx=70, ipady=18)
+        start_btn = ttk.Button(self.root, text="BEGIN GAME", command=self.start_game, style="Accent.TButton")
+        start_btn.pack(pady=60, ipadx=70, ipady=18)
+        self.fade_in(start_btn)
     
     def start_game(self):
         self.score = 0
@@ -111,7 +139,7 @@ class NaijaMillionaire:
             self.questions = [q for q in all_questions if q["cat"] == self.cat_var.get()]
         random.shuffle(self.questions)
     
-    def show_question(self, fade=0):
+    def show_question(self):
         self.cancel_timer()
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -125,23 +153,23 @@ class NaijaMillionaire:
         # Top Info
         top = tk.Frame(main_frame, bg="#050520")
         top.pack(fill="x")
-        tk.Label(top, text=f"QUESTION {self.current_question + 1}", font=("Arial", 14, "bold"), fg="#FFD700", bg="#050520").pack(side="left")
-        tk.Label(top, text=f"₦{self.prizes[self.current_question]:,}", font=("Arial", 20, "bold"), fg="#00FFAA", bg="#050520").pack(side="right")
+        q_num = tk.Label(top, text=f"QUESTION {self.current_question + 1}", font=("Arial", 14, "bold"), fg="#FFD700", bg="#050520")
+        q_num.pack(side="left")
+        self.fade_in(q_num)
+        
+        prize_lbl = tk.Label(top, text=f"₦{self.prizes[self.current_question]:,}", font=("Arial", 20, "bold"), fg="#00FFAA", bg="#050520")
+        prize_lbl.pack(side="right")
+        self.fade_in(prize_lbl)
         
         self.timer_label = tk.Label(main_frame, text=f"⏳ {self.time_left} SECONDS", font=("Arial", 18, "bold"), fg="#FF4444", bg="#050520")
         self.timer_label.pack(pady=8)
         
-        # Question with fade effect
+        # Question
         q_frame = tk.Frame(main_frame, bg="#1a1a4d", relief="solid", bd=4)
         q_frame.pack(pady=25, fill="x", padx=40)
-        self.question_label = tk.Label(q_frame, text=q["q"], font=("Arial", 18, "bold"), fg="white", bg="#1a1a4d", wraplength=850, justify="center")
+        self.question_label = tk.Label(q_frame, text=q["q"], font=("Arial", 18, "bold"), fg="#111111", bg="#1a1a4d", wraplength=850, justify="center")
         self.question_label.pack(pady=45, padx=30)
-        
-        # Animate question appearance
-        if fade < 100:
-            self.question_label.config(fg=f"#{int(255*fade/100):02x}{int(255*fade/100):02x}{int(255*fade/100):02x}")
-            self.root.after(20, lambda: self.show_question(fade + 10))
-            return
+        self.fade_in(self.question_label, 0)
         
         # Options
         for i, option in enumerate(q["options"]):
@@ -149,6 +177,7 @@ class NaijaMillionaire:
                           width=55, height=2, bg="#112244", fg="#FFFFFF", activebackground="#FFCC00",
                           relief="raised", bd=4, command=lambda o=option: self.check_answer(o, q["a"]))
             btn.pack(pady=9)
+            self.fade_in(btn)
         
         self.show_lifelines()
         self.show_money_ladder()
@@ -157,7 +186,9 @@ class NaijaMillionaire:
     def show_lifelines(self):
         life_frame = tk.Frame(self.root, bg="#050520")
         life_frame.pack(pady=15)
-        tk.Label(life_frame, text="LIFELINES", font=("Arial", 12, "bold"), fg="#FFD700", bg="#050520").pack()
+        lbl = tk.Label(life_frame, text="LIFELINES", font=("Arial", 12, "bold"), fg="#FFD700", bg="#050520")
+        lbl.pack()
+        self.fade_in(lbl)
         
         for name in self.lifelines:
             state = "normal" if self.lifelines[name] else "disabled"
@@ -165,22 +196,27 @@ class NaijaMillionaire:
             btn = tk.Button(life_frame, text=name, font=("Arial", 10, "bold"), bg=color, fg="white",
                           state=state, command=lambda n=name: self.use_lifeline(n))
             btn.pack(side="left", padx=12, ipadx=15, ipady=8)
+            self.fade_in(btn)
     
     def show_money_ladder(self):
         ladder_frame = tk.Frame(self.root, bg="#1a1a4d", width=230)
         ladder_frame.pack(side="right", fill="y", padx=20, pady=20)
-        tk.Label(ladder_frame, text="PRIZE LADDER", font=("Arial", 14, "bold"), fg="#FFD700", bg="#1a1a4d").pack(pady=15)
+        lbl = tk.Label(ladder_frame, text="PRIZE LADDER", font=("Arial", 14, "bold"), fg="#FFD700", bg="#1a1a4d")
+        lbl.pack(pady=15)
+        self.fade_in(lbl)
         
         for i, prize in enumerate(reversed(self.prizes[1:])):
             level = len(self.prizes) - i - 1
             color = "#FFD700" if level == self.current_question else "#CCCCCC"
             bg = "#003300" if level == self.current_question else "#1a1a4d"
-            tk.Label(ladder_frame, text=f"₦{prize:,}", font=("Arial", 11, "bold"), fg=color, bg=bg).pack(pady=6)
+            l = tk.Label(ladder_frame, text=f"₦{prize:,}", font=("Arial", 11, "bold"), fg=color, bg=bg)
+            l.pack(pady=6)
+            self.fade_in(l)
     
     def use_lifeline(self, lifeline):
         if not self.lifelines[lifeline]: return
         self.lifelines[lifeline] = False
-        messagebox.showinfo(lifeline, f"{lifeline} activated!")
+        messagebox.showinfo(lifeline, f"{lifeline} has been used!")
         self.show_question()
     
     def update_timer(self):
@@ -197,17 +233,11 @@ class NaijaMillionaire:
         if selected == correct:
             self.score = self.prizes[self.current_question + 1]
             self.play_sound("correct")
-            self.flash_correct()
-            self.root.after(1200, self.next_question)
+            self.root.after(800, self.next_question)
         else:
             self.play_sound("wrong")
-            messagebox.showerror("❌ GAME OVER", f"Wrong!\nCorrect answer was:\n{correct}")
+            messagebox.showerror("❌ GAME OVER", f"Wrong Answer!\nCorrect was:\n{correct}")
             self.show_final_score()
-    
-    def flash_correct(self):
-        # Simple flash animation
-        self.root.configure(bg="#003300")
-        self.root.after(200, lambda: self.root.configure(bg="#050520"))
     
     def time_up(self):
         self.cancel_timer()
@@ -228,9 +258,17 @@ class NaijaMillionaire:
         for widget in self.root.winfo_children():
             widget.destroy()
             
-        tk.Label(self.root, text="CONGRATULATIONS!", font=("Arial", 36, "bold"), fg="#FFD700", bg="#050520").pack(pady=80)
-        tk.Label(self.root, text=f"You Won\n₦{self.score:,}", font=("Arial", 32, "bold"), fg="#00FFAA", bg="#050520").pack(pady=20)
-        ttk.Button(self.root, text="PLAY AGAIN", command=self.show_main_menu, style="Accent.TButton").pack(pady=50, ipadx=70, ipady=18)
+        congrats = tk.Label(self.root, text="CONGRATULATIONS!", font=("Arial", 36, "bold"), fg="#FFD700", bg="#050520")
+        congrats.pack(pady=80)
+        self.fade_in(congrats)
+        
+        result = tk.Label(self.root, text=f"You Won\n₦{self.score:,}", font=("Arial", 32, "bold"), fg="#00FFAA", bg="#050520")
+        result.pack(pady=20)
+        self.fade_in(result)
+        
+        btn = ttk.Button(self.root, text="PLAY AGAIN", command=self.show_main_menu, style="Accent.TButton")
+        btn.pack(pady=60, ipadx=70, ipady=18)
+        self.fade_in(btn)
     
     def show_high_scores(self):
         text = "🏆 TOP NAIIJA MILLIONAIRES 🏆\n\n"
